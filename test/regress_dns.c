@@ -1204,7 +1204,7 @@ test_getaddrinfo_async(void *arg)
 	struct basic_test_data *data = arg;
 	struct evutil_addrinfo hints, *a;
 	struct gai_outcome local_outcome;
-	struct gai_outcome a_out[12];
+	struct gai_outcome a_out[13];
 	int i;
 	struct evdns_getaddrinfo_request *r;
 	char buf[128];
@@ -1465,6 +1465,21 @@ test_getaddrinfo_async(void *arg)
 		event_base_once(data->base, -1, EV_TIMEOUT, cancel_gai_cb,
 		    r, &tv);
 	}
+
+	/* 12: test a NULL pointer use regression when evdns_getaddrinfo()'s
+         * use of evdns_base_resolve_ipv4() returns NULL */
+	memset (&hints, 0, sizeof (hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_flags = EVUTIL_AI_CANONNAME;
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_protocol = IPPROTO_UDP;
+	r = evdns_getaddrinfo(dns_base,
+            "open.demAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAonii.com",
+            NULL, &hints, gai_cb, &a_out[12]);
+	tt_assert(!r);
+	tt_int_op(local_outcome.err,==,0);
+	tt_assert(local_outcome.ai == NULL);
+
 
 	/* XXXXX There are more tests we could do, including:
 
