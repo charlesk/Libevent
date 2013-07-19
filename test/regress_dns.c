@@ -1466,8 +1466,9 @@ test_getaddrinfo_async(void *arg)
 		    r, &tv);
 	}
 
-	/* 12: test a NULL pointer use regression when evdns_getaddrinfo()'s
-         * use of evdns_base_resolve_ipv4() returns NULL */
+	/* 12: confirm that we don't crash when user requests the canon name
+         * of an unresolvable nodename. The long nodename in this test was
+         * found in the wild by a Transmission user. */
 	memset (&hints, 0, sizeof (hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_flags = EVUTIL_AI_CANONNAME;
